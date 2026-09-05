@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>실시간 화재 경보 프로그램 현황</title>
+
+    <link rel="manifest" href="/manifest.json">
+
+    <style>
+        body { font-family: Arial; text-align: center; background: #111; color: white; margin: 0; padding: 20px; }
+        img { max-width: 95%; margin: 15px auto; border: 4px solid #0f0; border-radius: 8px; }
+        
+        /* 알람 전용 경보창 스타일 */
+        #alarmStatus { 
+            font-size: 1.4em; 
+            font-weight: bold; 
+            margin: 15px auto; 
+            padding: 15px; 
+            border-radius: 8px; 
+            background: #222; 
+            border: 2px solid #444;
+            max-width: 90%;
+        }
+        
+        /* 이미지 업데이트 상태창 */
+        #status { font-size: 1em; margin: 10px; color: #aaa; }
+        
+        /* 깜빡이는 알람 애니메이션 */
+        .alarm { background: #900 !important; color: white; border-color: #f00 !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+    <h1>실시간 화재 경보 프로그램 현황</h1>
+    
+    <!-- 🚨 [분리 1] 화재 알람 상태 전용 구역 -->
+    <div id="alarmStatus">🟢 현재 상태: 정상 (화재 미감지)</div>
+    
+    <img id="yoloImg" src="" alt="이미지 대기중...">
+    
+    <!-- 🟢 [분리 2] 이미지 업데이트 수신 상태 구역 -->
+    <p id="status">연결 대기중...</p>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('connect', () => {
+            const status = document.getElementById('status');
+            status.textContent = '✅ Socket 연결됨';
+            status.style.color = '#0f0';
+        });
+
+        // 1. 이미지 전송 수신 -> #status (하단 작은 텍스트)만 업데이트
+        socket.on('image', (data) => {
+            const img = document.getElementById('yoloImg');
+            const status = document.getElementById('status');
+            img.src = 'data:image/jpeg;base64,' + data.image;
+            status.textContent = '✅ 이미지 업데이트 (' + new Date().toLocaleTimeString() + ')';
+        });
+
+        // 2. 화재 감지 수신 -> #alarmStatus (상단 대형 경보창) 업데이트
+        socket.on('gpio_input', (data) => {
+            const alarmStatus = document.getElementById('alarmStatus');
+            if (data.result == 1) {
+                alarmStatus.textContent = data.message + ' (' + data.time + ')';
+                alarmStatus.classList.add('alarm');
+            } else {
+                alarmStatus.classList.remove('alarm');
+                alarmStatus.style.background = '#222';
+                alarmStatus.style.borderColor = '#444';
+                alarmStatus.textContent = data.message;
+            }
+            
+        });
+
+        // PWA 서비스 워커 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ Service Worker 등록 완료'))
+                    .catch(err => console.error('❌ Service Worker 등록 실패:', err));
+            });
+        }
+    </script>
+</body>
+</html>
