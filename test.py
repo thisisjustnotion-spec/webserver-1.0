@@ -6,7 +6,7 @@ npm_cli = r"C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js"
 
 # node.exe로 npm-cli.js 직접 실행
 try:
-    subprocess.run(["pip", "install", "python-socketio, "opencv-python", "numpy", "ultralytics"])
+    subprocess.run(["pip", "install", "python-socketio", "opencv-python", "numpy", "ultralytics"])
     print("✅ pip install python-socketio opencv-python numpy ultralytics 완료")
     subprocess.run([node_exe, npm_cli, "init", "-y"], check=True)
     print("✅ npm init -y 완료")
