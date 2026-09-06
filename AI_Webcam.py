@@ -38,7 +38,19 @@ def create_yolo_image():
     # YOLO 추론 (최적화 옵션 적용)
     results = model(img, imgsz=320, verbose=False, conf=0.25)[0]  # conf=0.25로 낮춰서 더 많은 객체 잡음
     if len(results.boxes) > 0:
-        print("gpio로 1를 출력해서 센서 인식")
+        sio.emit('gpio_input', {
+                'status': 'triggered',
+                'message': '🚨화재 경보🚨',
+                'result' : 1,
+                'time': time.strftime('%H:%M:%S')
+            })
+    else:
+        sio.emit('gpio_input', {
+                'status': 'triggered',
+                'message': '🟢 현재 상태: 정상 (화재 미감지)',
+                'result' : 0,
+                'time': time.strftime('%H:%M:%S')
+            })
     # 바운딩박스 + 라벨 그려진 이미지
     annotated = results.plot()
     
