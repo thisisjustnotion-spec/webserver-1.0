@@ -4,6 +4,11 @@ import base64
 import time
 import threading
 from ultralytics import YOLO
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO_PIN = 23
+GPIO.setup(GPIO_PIN, GPIO.OUT)
 
 # Socket.IO 클라이언트 생성
 sio = socketio.Client()
@@ -48,6 +53,8 @@ def create_yolo_image():
                 'result' : 1,
                 'time': time.strftime('%H:%M:%S')
             })
+        GPIO.output(GPIO_PIN, GPIO.HIGH)
+        print("GPIO ON")
     else:
         sio.emit('gpio_input', {
                 'status': 'triggered',
@@ -55,6 +62,8 @@ def create_yolo_image():
                 'result' : 0,
                 'time': time.strftime('%H:%M:%S')
             })
+        GPIO.output(GPIO_PIN, GPIO.LOW)
+        print("GPIO OFF")
     # 바운딩박스 + 라벨 그려진 이미지
     annotated = results.plot()
     
