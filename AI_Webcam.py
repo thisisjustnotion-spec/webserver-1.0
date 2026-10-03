@@ -41,7 +41,7 @@ def create_yolo_image():
         return None
 
     # YOLO 추론 (최적화 옵션 적용)
-    results = model(img, imgsz=320, verbose=False, conf=0.25)[0]  # conf=0.25로 낮춰서 더 많은 객체 잡음
+    results = model(img, imgsz=320, verbose=False, conf=0.25, , classes=[0])[0]  # conf=0.25로 낮춰서 더 많은 객체 잡음
     if len(results.boxes) > 0:
         sio.emit('gpio_input', {
                 'status': 'triggered',
